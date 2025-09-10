@@ -14,6 +14,7 @@ public class RnaMain {
             System.out.println("2 - Porta Lógica 'OU'");
             System.out.println("3 - Porta Lógica 'XOR'");
             System.out.println("4 - Movimentação do Robô");
+            System.out.println("5 - Skin Segmentation.txt");
             System.out.println("0 - Sair");
             System.out.print("Opção: ");
             entrada = sc.nextInt();
@@ -59,6 +60,12 @@ public class RnaMain {
                     };
                     treinar(3, 2, baseRobo, epocas);
                     break;
+                case 5:
+                    double[][][] baseSkin = LeitorBase.lerBase("Perceptron-Simples/Skin_NonSkin.txt");
+                    if (baseSkin != null) {
+                        treinar(3, 1, baseSkin, epocas);
+                    }
+                    break;
                 case 0:
                     break;
                 default:
@@ -74,7 +81,8 @@ public class RnaMain {
         Perceptron rna = new Perceptron(qtdIn, qtdOut, 0.3);
 
         for (int e = 0; e < epocas; e++) {
-            double erroEpoca = 0;
+            double erroAproxEpoca = 0;
+            double erroClassificacaoEpoca = 0;
 
             for (int a = 0; a < base.length; a++) {
                 double[] x = base[a][0];
@@ -82,15 +90,36 @@ public class RnaMain {
 
                 double[] out = rna.treinar(x, y); // Realiza o treinamento de uma amostra, ajustando os pesos
 
-                // Calcula o erro da amostra
-                double erroAmostra = 0;
+                // Calcula o erro de aproximação da amostra
+                double erroAproxAmostra = 0;
                 for (int j = 0; j < y.length; j++) {
-                    erroAmostra += Math.abs(y[j] - out[j]);
+                    erroAproxAmostra += Math.abs(y[j] - out[j]);
                 }
-                erroEpoca += erroAmostra;
+                erroAproxEpoca += erroAproxAmostra;
+
+                // Aplica o limiar de disparo
+                double[] out_t = new double[out.length];
+                for (int j = 0; j < out.length; j++) {
+                    if (out[j] >= 0.5) {
+                        out_t[j] = 1.0;
+                    } else {
+                        out_t[j] = 0.0;
+                    }
+                }
+
+                // Verifica se houve erro de classificação na amostra
+                double erroClassificacaoAmostra = 0;
+                for (int j = 0; j < y.length; j++) {
+                    erroClassificacaoAmostra += Math.abs(y[j] - out_t[j]);
+                }
+
+                if (erroClassificacaoAmostra > 0) {
+                    erroClassificacaoEpoca += 1;
+                }
             }
 
-            System.out.printf("Erro da época " + e + ": " + erroEpoca + "\n");
+            System.out.printf("Época: %d - %f - %.0f\n", e, erroAproxEpoca,
+                    erroClassificacaoEpoca);
         }
     }
 }

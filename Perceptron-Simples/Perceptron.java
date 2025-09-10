@@ -44,7 +44,7 @@ public class Perceptron {
         double[][] deltaW = new double[w.length][w[0].length];
         for (int j = 0; j < qtdOut; j++) {
             for (int i = 0; i < qtdIn + 1; i++) {
-                deltaW[i][j] = ni * (y[j] - out[j]) * x[i]; // Regra Delta com derivada da sigmoide
+                deltaW[i][j] = ni * (y[j] - out[j]) * x[i];
                 w[i][j] += deltaW[i][j];
             }
         }
