@@ -1,19 +1,22 @@
 import java.util.Random;
 
-public class Perceptron {
+public class Perceptron implements RNA {
     private double[][] w; // Pesos da rede
-    private final double ni; // Taxa de aprendizado
-    private final int qtdIn;
-    private final int qtdOut;
+    private final double ni = 0.3; // Taxa de aprendizado
+    /*
+    qtdIn: quantidade de neuronios na camada de entrada
+    qtdOut: quantidade de neuronios na camada de saida
+    */ 
+    private final int qtdIn, qtdOut;
     private static final Random random = new Random();
 
-    public Perceptron(int qtdIn, int qtdOut, double ni) {
+    public Perceptron(int qtdIn, int qtdOut) {
         this.qtdIn = qtdIn;
         this.qtdOut = qtdOut;
-        this.ni = ni;
+
         this.w = new double[qtdIn + 1][qtdOut];
 
-         // Inicializa os pesos da rede com valores aleatórios
+         // Imicializa os pesos da rede com valores aleatórios
         for (int i = 0; i < w.length; i++) {
             for (int j = 0; j < w[i].length; j++) {
                 w[i][j] = random.nextDouble() * 0.6 - 0.3; // Valores entre -0.3 e 0.3
@@ -22,6 +25,7 @@ public class Perceptron {
     }
 
     // Realiza o treinamento de uma amostra, ajustando os pesos
+    @Override
     public double[] treinar(double[] xin, double[] y) {
         double[] x = new double[qtdIn + 1];
         x[0] = 1;
