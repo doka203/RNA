@@ -23,7 +23,7 @@ public class RnaMain {
             }
 
             do {
-                int epocas = 10;
+                int epocas = 10000;
                 RNA redeNeural = null;
 
                 if (tipoRede == 1) {
