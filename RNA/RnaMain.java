@@ -23,7 +23,7 @@ public class RnaMain {
             }
 
             do {
-                int epocas = 10000;
+                int epocas = 10;
                 RNA redeNeural = null;
 
                 if (tipoRede == 1) {
@@ -104,12 +104,13 @@ public class RnaMain {
                         if (baseSeparadaSkin != null) {
                             if (tipoRede == 1) {
                                 redeNeural = new Perceptron(3, 1);
-                                treinar (redeNeural, baseSkin, epocas);
+                                treinar(redeNeural, baseSkin, epocas);
                             } else {
                                 System.out.print("\nQuantidade de neurônios na camada intermediária (qtdH): ");
                                 int qtdH = sc.nextInt();
                                 redeNeural = new Mlp(3, qtdH, 1);
-                                treinar(redeNeural, baseSeparadaSkin.baseTreino, baseSeparadaSkin.baseTeste, epocas);
+                                double[][] erros = treinar(redeNeural, baseSeparadaSkin.baseTreino, baseSeparadaSkin.baseTeste, epocas);
+                                Arquivar.salvarErros(erros, "baseSkin", qtdH);
                             }
                         }
                         break;
@@ -130,26 +131,28 @@ public class RnaMain {
     }
 
     // Treina a rede neural com a base de treino e teste
-    public static void treinar(RNA rna, double[][][] base, double[][][] baseTeste, int epocas) {
+    public static double[][] treinar(RNA rna, double[][][] baseTreino, double[][][] baseTeste, int epocas) {
         System.out.println("\n--- Iniciando Treinamento com " + rna.getClass().getName() + " ---");
 
+        // Aproximacao e classificacao para treino e teste
+        double[][] erros = new double[epocas][4];
         for (int e = 0; e < epocas; e++) {
-            double erroAprox = 0.0, erroClassificacao = 0.0;
-            double erroAproxTeste = 0.0, erroClassificacaoTeste = 0.0;
+            double erroAproxTreino = 0.0, erroClassificacaoTreino = 0.0;
+            double erroAproxTreinoTeste = 0.0, erroClassificacaoTeste = 0.0;
 
             // Treina com a base de treino
-            for (int a = 0; a < base.length; a++) {
-                double[] x = base[a][0];
-                double[] y = base[a][1];
+            for (int a = 0; a < baseTreino.length; a++) {
+                double[] x = baseTreino[a][0];
+                double[] y = baseTreino[a][1];
 
                 double[] out = rna.treinar(x, y); // Realiza o treinamento de uma amostra, ajustando os pesos
 
                 // Calcula o erro de aproximação da amostra
-                double erroAproxAmostra = 0.0;
+                double erroAproxTreinoAmostra = 0.0;
                 for (int j = 0; j < y.length; j++) {
-                    erroAproxAmostra += Math.abs(y[j] - out[j]);
+                    erroAproxTreinoAmostra += Math.abs(y[j] - out[j]);
                 }
-                erroAprox += erroAproxAmostra;
+                erroAproxTreino += erroAproxTreinoAmostra;
 
                 // Aplica o limiar de disparo
                 double[] out_t = new double[out.length];
@@ -168,7 +171,7 @@ public class RnaMain {
                 }
 
                 if (erroClassificacaoAmostra > 0.0) {
-                    erroClassificacao += 1.0;
+                    erroClassificacaoTreino += 1.0;
                 }
             }
 
@@ -180,11 +183,11 @@ public class RnaMain {
                 double[] out = rna.treinar(x, y); // Realiza o treinamento de uma amostra, ajustando os pesos
 
                 // Calcula o erro de aproximação da amostra
-                double erroAproxAmostra = 0.0;
+                double erroAproxTreinoAmostra = 0.0;
                 for (int j = 0; j < y.length; j++) {
-                    erroAproxAmostra += Math.abs(y[j] - out[j]);
+                    erroAproxTreinoAmostra += Math.abs(y[j] - out[j]);
                 }
-                erroAproxTeste += erroAproxAmostra;
+                erroAproxTreinoTeste += erroAproxTreinoAmostra;
 
                 // Aplica o limiar de disparo
                 double[] out_t = new double[out.length];
@@ -206,16 +209,22 @@ public class RnaMain {
                     erroClassificacaoTeste += 1.0;
                 }
             }
+            erros[e][0] = erroAproxTreino;
+            erros[e][1] = erroClassificacaoTreino;
+            erros[e][2] = erroAproxTreinoTeste;
+            erros[e][3] = erroClassificacaoTeste;
 
-            System.out.printf("Época: %d\t| Treino: %f\t- %.0f\t| Teste: %f\t- %.0f\n", e, erroAprox,
-                    erroClassificacao, erroAproxTeste, erroClassificacaoTeste);
+            System.out.printf("Época: %d\t| Treino: %f\t- %.0f\t| Teste: %f\t- %.0f\n", e, erroAproxTreino,
+                    erroClassificacaoTreino, erroAproxTreinoTeste, erroClassificacaoTeste);
         }
+        return erros;
     }
+
     public static void treinar(RNA rna, double[][][] base, int epocas) {
         System.out.println("\n--- Iniciando Treinamento com " + rna.getClass().getName() + " ---");
 
         for (int e = 0; e < epocas; e++) {
-            double erroAprox = 0.0, erroClassificacao = 0.0;
+            double erroAproxTreino = 0.0, erroClassificacaoTreino = 0.0;
 
             // Treina com a base de treino
             for (int a = 0; a < base.length; a++) {
@@ -225,11 +234,11 @@ public class RnaMain {
                 double[] out = rna.treinar(x, y); // Realiza o treinamento de uma amostra, ajustando os pesos
 
                 // Calcula o erro de aproximação da amostra
-                double erroAproxAmostra = 0.0;
+                double erroAproxTreinoAmostra = 0.0;
                 for (int j = 0; j < y.length; j++) {
-                    erroAproxAmostra += Math.abs(y[j] - out[j]);
+                    erroAproxTreinoAmostra += Math.abs(y[j] - out[j]);
                 }
-                erroAprox += erroAproxAmostra;
+                erroAproxTreino += erroAproxTreinoAmostra;
 
                 // Aplica o limiar de disparo
                 double[] out_t = new double[out.length];
@@ -248,12 +257,12 @@ public class RnaMain {
                 }
 
                 if (erroClassificacaoAmostra > 0.0) {
-                    erroClassificacao += 1.0;
+                    erroClassificacaoTreino += 1.0;
                 }
             }
 
-            System.out.printf("Época: %d\t| Treino: %f\t- %.0f\n", e, erroAprox,
-                    erroClassificacao);
+            System.out.printf("Época: %d\t| Treino: %f\t- %.0f\n", e, erroAproxTreino,
+                    erroClassificacaoTreino);
         }
     }
 }

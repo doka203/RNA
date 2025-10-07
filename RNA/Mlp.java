@@ -2,7 +2,7 @@ import java.util.Random;
 
 public class Mlp implements RNA{
     private double[][] wh, wo; // Pesos da rede
-    private final double ni = 0.3; // Taxa de aprendizado
+    private final double ni = 0.05; // Taxa de aprendizado
     /*
     qtdIn: quantidade de neuronios na camada de entrada
     qtdH: quantidade de neuronios na camada intermediaria
